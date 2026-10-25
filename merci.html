@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bienvenue dans la team OZB</title>
+<meta name="robots" content="noindex">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0d10; --card:#14171c; --line:#23272e; --text:#f2f4f7; --muted:#9aa3ae;
+    --accent:#22c55e; --accent2:#16a34a;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif;line-height:1.55;
+    min-height:100vh;display:flex;justify-content:center;padding:40px 16px}
+  main{width:100%;max-width:560px}
+  .badge{display:inline-block;background:rgba(34,197,94,.12);color:var(--accent);font-weight:600;
+    font-size:13px;padding:6px 12px;border-radius:999px;margin-bottom:18px}
+  h1{font-size:32px;font-weight:800;line-height:1.15;margin-bottom:10px}
+  .sub{color:var(--muted);margin-bottom:28px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:16px}
+  .card h2{font-size:17px;margin-bottom:14px}
+  .step{display:flex;gap:14px;align-items:flex-start;margin-bottom:14px}
+  .step:last-child{margin-bottom:0}
+  .num{flex:0 0 30px;height:30px;border-radius:50%;background:var(--accent);color:#04120a;font-weight:800;
+    display:flex;align-items:center;justify-content:center;font-size:14px}
+  .path{font-weight:600}
+  .path span{color:var(--accent)}
+  .hint{color:var(--muted);font-size:14px;margin-top:2px}
+  .btn{display:block;text-align:center;background:var(--accent);color:#04120a;font-weight:800;text-decoration:none;
+    padding:16px;border-radius:12px;margin:22px 0 16px;font-size:16px}
+  .btn:hover{background:var(--accent2)}
+  .pin{display:flex;gap:12px;align-items:flex-start}
+  .pin .ico{font-size:22px}
+  .rules li{list-style:none;padding-left:26px;position:relative;margin-bottom:8px}
+  .rules li:before{content:"✓";position:absolute;left:0;color:var(--accent);font-weight:800}
+  .help{color:var(--muted);font-size:14px;text-align:center;margin-top:8px}
+  .help a{color:var(--text)}
+  footer{color:var(--muted);font-size:12px;text-align:center;margin-top:32px;border-top:1px solid var(--line);padding-top:18px}
+</style>
+</head>
+<body>
+<main>
+  <div class="badge">✅ Paiement confirmé</div>
+  <h1>Bienvenue dans la team OZB 🔥</h1>
+  <p class="sub">Plus qu'une étape pour rejoindre le groupe VIP sur Telegram. Ça prend 30 secondes.</p>
+
+  <div class="card">
+    <h2>Rejoindre le groupe VIP</h2>
+    <div class="step">
+      <div class="num">1</div>
+      <div>
+        <div class="path">Profil <span>→</span> Rejoints <span>→</span> OZB Prono</div>
+        <div class="hint">Sur mobile, « Profil » est en bas à droite de l'app Whop.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="num">2</div>
+      <div>
+        <div class="path">Onglet Application <span>→</span> Telegram</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="num">3</div>
+      <div>
+        <div class="path">Create Invite <span>→</span> Claim Invite</div>
+        <div class="hint">Et t'es dans le groupe.</div>
+      </div>
+    </div>
+  </div>
+
+  <a class="btn" href="https://whop.com/hub/">Ouvrir mon espace Whop</a>
+
+  <div class="card pin">
+    <div class="ico">📌</div>
+    <div>
+      <h2>Une fois dans le groupe</h2>
+      <p class="hint" style="margin-top:0">Lis bien les <strong style="color:var(--text)">messages épinglés</strong> : ton ebook sur les bases (foot, bankroll, analyse) t'y attend.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Pour bien démarrer</h2>
+    <ul class="rules">
+      <li>Fixe ta bankroll de départ, et n'y mets que ce que tu peux te permettre de perdre.</li>
+      <li>Suis le % de mise indiqué sur chaque ticket. Plus de mise au feeling.</li>
+      <li>Lis l'analyse avant de jouer : le but, c'est de comprendre, pas de copier.</li>
+    </ul>
+  </div>
+
+  <p class="help">Un souci pour rejoindre ? Écris-nous : <a href="mailto:ozb.prono@gmail.com">ozb.prono@gmail.com</a></p>
+
+  <footer>
+    Les paris sportifs comportent des risques : endettement, dépendance… Appelez le 09 74 75 13 13 (appel non surtaxé).<br>
+    Interdit aux moins de 18 ans. © OZB Prono
+  </footer>
+</main>
+</body>
+</html>
