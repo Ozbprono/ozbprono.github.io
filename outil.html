@@ -107,6 +107,7 @@ svg.curve{width:100%;height:auto;display:block;margin-top:12px;touch-action:pan-
 .tag.safe{background:color-mix(in srgb,var(--accent) 18%,transparent);color:var(--accent)}
 .tag.value{background:color-mix(in srgb,var(--win) 16%,transparent);color:var(--win)}
 .tag.fun{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)}
+.tag.bonus{background:color-mix(in srgb,#b48cff 20%,transparent);color:#b48cff}
 .tag.perso{background:color-mix(in srgb,var(--muted) 18%,transparent);color:var(--muted)}
 .t-main{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
 .t-title{font-weight:700;min-width:0;overflow-wrap:anywhere}
@@ -130,6 +131,7 @@ svg.curve{width:100%;height:auto;display:block;margin-top:12px;touch-action:pan-
 .pill{font-size:12px;font-weight:800;padding:4px 10px;border-radius:999px}
 .pill.W{background:color-mix(in srgb,var(--win) 16%,transparent);color:var(--win)}
 .pill.L{background:color-mix(in srgb,var(--loss) 16%,transparent);color:var(--loss)}
+.pill.P{background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent)}
 .pill.V{background:color-mix(in srgb,var(--muted) 16%,transparent);color:var(--muted)}
 .pill.P{background:var(--surface);color:var(--muted);border:1px solid var(--line)}
 .res-btns{display:flex;gap:6px;flex-wrap:wrap}
@@ -172,6 +174,11 @@ textarea.inp{min-height:150px;resize:vertical;font-size:14px;font-family:var(--m
 .big-step button{width:46px;height:46px;border-radius:12px;border:1px solid var(--line);background:var(--surface2);font-size:22px}
 .big-step input{flex:1;min-width:0;text-align:center;font-family:var(--mono);font-weight:600;font-size:22px;padding:8px;border-radius:12px;border:1px solid var(--line);background:var(--surface2)}
 .calc{font-size:14px;color:var(--muted)}
+.big-step .unit{font-family:var(--mono);font-weight:600;font-size:18px;color:var(--muted);margin-left:-4px}
+.eur-row{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--muted)}
+.eur-row label{white-space:nowrap}
+.eur-row input{max-width:140px;padding:9px 12px}
+#p-calc{display:flex;flex-direction:column;gap:10px}
 .calc b{color:var(--fg);font-family:var(--mono)}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 @media (max-width:420px){.row2{grid-template-columns:1fr}}
@@ -221,14 +228,14 @@ const MONTHS=["janvier","février","mars","avril","mai","juin","juillet","août"
 const longDate=()=>{const s=new Date().toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"});return s.charAt(0).toUpperCase()+s.slice(1);};
 const shortD=k=>{const [y,m,d]=k.split("-");return (+d)+" "+MONTHS[+m-1].slice(0,4).replace(/\.$/,"")+(MONTHS[+m-1].length>4?".":"");};
 const SPORTS=[["foot","Foot"],["tennis","Tennis"],["basket","Basket"],["hockey","Hockey"],["autre","Autre"]];
-const TYPES=[["safe","Safe"],["value","Value"],["fun","Fun"]];
+const TYPES=[["safe","Safe"],["value","Value"],["fun","Fun"],["bonus","Bonus"]];
 
 /* ---------- Données ---------- */
 let S=load(), view="main", drawn=false, lastBk=null, CUR=null;
 function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&typeof s.start==="number")return s;}catch(e){}return null;}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 
-function profitOf(t){if(!t.played||!t.result)return 0;if(t.result==="W")return r2(t.stake*(t.odds-1));if(t.result==="L")return -t.stake;return 0;}
+function profitOf(t){if(!t.played||!t.result)return 0;if(t.result==="W")return r2(t.stake*(t.odds-1));if(t.result==="L")return -t.stake;if(t.result==="P")return r2(t.stake*((t.finalOdds||1)-1));return 0;}
 function bankroll(){return r2(S.start+S.tickets.reduce((a,t)=>a+profitOf(t),0));}
 function engaged(except){return S.tickets.filter(t=>t.played&&!t.result&&t.id!==except).reduce((a,t)=>a+t.stake,0);}
 function available(except){return Math.max(0,r2(bankroll()-engaged(except)));}
@@ -240,7 +247,7 @@ function outOfPlan(t){if(t.src==="perso")return t.pct>5;const a=advE(t);return t
 function parseTg(txt){
   const out={};
   const link=txt.match(/https?:\/\/\S+/);if(link)out.link=link[0];
-  const tp=txt.match(/ticket\s+(safe|value|fun)/i);out.type=tp?tp[1].toLowerCase():(/\bfun\b/i.test(txt)?"fun":/\bvalue\b/i.test(txt)?"value":"safe");
+  const tp=txt.match(/ticket\s+(safe|value|fun|bonus)/i);out.type=tp?tp[1].toLowerCase():(/\bfun\b/i.test(txt)?"fun":/\bvalue\b/i.test(txt)?"value":"safe");
   const odds=txt.match(/cote\s*[:=]?\s*(\d{1,2}[.,]\d{1,3})/i)||txt.match(/@\s*(\d{1,2}[.,]\d{1,3})/);
   if(odds)out.odds=parseFloat(odds[1].replace(",","."));
   const pct=txt.match(/(\d{1,2}(?:[.,]\d{1,2})?)\s*%\s*(?:de\s*)?(?:bankroll|bk)/i)||txt.match(/(\d{1,2}(?:[.,]\d{1,2})?)\s*%/);
@@ -290,7 +297,7 @@ function stats(){
   const mt=monthTickets().filter(t=>t.played&&t.result);
   const gained=mt.filter(t=>profitOf(t)>0).reduce((a,t)=>a+profitOf(t),0);
   const lost=mt.filter(t=>profitOf(t)<0).reduce((a,t)=>a-profitOf(t),0);
-  const w=mt.filter(t=>t.result==="W").length,l=mt.filter(t=>t.result==="L").length;
+  const w=mt.filter(t=>t.result==="W"||(t.result==="P"&&profitOf(t)>0)).length,l=mt.filter(t=>t.result==="L").length;
   const playedAll=monthTickets().filter(t=>t.played);
   const disc=playedAll.length?Math.round(playedAll.filter(t=>!outOfPlan(t)).length/playedAll.length*100):100;
   const profit=r2(gained-lost);
@@ -362,6 +369,7 @@ function render(){
   if(lastBk!==null&&lastBk!==bk)tween(document.getElementById("bk"),lastBk,bk);
   lastBk=bk;
 }
+function resLabel(t){return t.result==="W"?"Gagné":t.result==="L"?"Perdu":t.result==="P"?`Partiel · cote ${fr(t.finalOdds)}`:"Remboursé";}
 function ticketCard(t){
   const playedState=t.played;
   const tag=t.src==="perso"?`<span class="tag perso">Perso</span>`:`<span class="tag ${t.type}">${t.type}</span>`;
@@ -369,7 +377,7 @@ function ticketCard(t){
   const sport=(SPORTS.find(s=>s[0]===t.sport)||["","Autre"])[1];
   let ctrl="";
   if(t.result){
-    ctrl=`<div class="t-foot"><span class="pill ${t.result}">${t.result==="W"?"Gagné":t.result==="L"?"Perdu":"Remboursé"}${t.played&&t.result!=="V"?" "+sgn(profitOf(t)):""}${!t.played?" · non joué":""}</span>${t.played?`<span class="hint">Misé ${eur(t.stake)}</span>`:""}</div>`;
+    ctrl=`<div class="t-foot"><span class="pill ${t.result}">${resLabel(t)}${t.played&&t.result!=="V"?" "+sgn(profitOf(t)):""}${!t.played?" · non joué":""}</span>${t.played?`<span class="hint">Misé ${eur(t.stake)}</span>`:""}</div>`;
   }else{
     const lock=t.src==="ozb"&&t.date<today();
     ctrl=`<div class="t-ctrl">
@@ -381,11 +389,11 @@ function ticketCard(t){
       </div></div>
       <div class="t-foot">
         <span class="hint">${t.src==="ozb"?`Conseillé : ${fr(t.adv)} % soit ${eur(advE(t))}`:"Plan conseillé : 5 % max"}</span>
-        ${t.src==="perso"?`<div class="res-btns"><button data-act="res" data-id="${t.id}" data-r="W">Gagné</button><button data-act="res" data-id="${t.id}" data-r="L">Perdu</button><button data-act="res" data-id="${t.id}" data-r="V">Remb.</button></div>`:(t.played?`<span class="pill P">Résultat en attente</span>`:"")}
+        ${t.src==="perso"?`<div class="res-btns"><button data-act="res" data-id="${t.id}" data-r="W">Gagné</button><button data-act="res" data-id="${t.id}" data-r="L">Perdu</button><button data-act="partial" data-id="${t.id}">Partiel</button><button data-act="res" data-id="${t.id}" data-r="V">Remb.</button></div>`:(t.played?`<span class="pill P">Résultat en attente</span>`:"")}
       </div>`;
   }
   return `<article class="ticket ${playedState&&!t.result?"on":""}">
-    <div class="t-meta">${tag}<span>${sport}</span>${old}${t.link?`<a class="t-link" href="${esc(t.link)}" target="_blank" rel="noopener">Voir le ticket ↗</a>`:""}</div>
+    <div class="t-meta">${tag}<span>${sport}</span>${old}${t.src==="ozb"&&t.ts>1e12?`<span>Publié à ${new Date(t.ts).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})}</span>`:""}${t.link?`<a class="t-link" href="${esc(t.link)}" target="_blank" rel="noopener">Voir le ticket ↗</a>`:""}</div>
     <div class="t-main"><div class="t-title">${esc(t.match).split("\n").map(l=>`<span class="ln">${l}</span>`).join("")}${t.pick?`<div class="t-pick">${esc(t.pick)}</div>`:""}</div><div class="odds">${t.odds.toFixed(2).replace(".",",")}</div></div>
     ${ctrl}</article>`;
 }
@@ -447,6 +455,16 @@ function renderOnboard(){
 /* ---------- Ajouter un pari perso ---------- */
 let P=null;
 function openPerso(){P={sport:"foot",match:"",odds:1.8,pct:2};drawPerso();}
+function readP(){const g=id=>document.getElementById(id);if(!g("p-match"))return;P.match=g("p-match").value;const o=parseFloat(g("p-odds").value.replace(",","."));if(o>1)P.odds=r2(o);const q=parseFloat(g("p-pct").value.replace(",","."));if(q>0)P.pct=Math.min(100,r2(q));}
+function persoCalc(){const avail=available(null),st=r2(avail*P.pct/100);const losses=S.tickets.filter(t=>t.date===today()&&t.played&&t.result==="L").length;
+  return `<div class="calc">Soit <b>${eur(st)}</b> sur tes ${eur(avail)} disponibles · gain possible <b>${eur(r2(st*(P.odds-1)))}</b></div>
+  ${losses>=2?`<div class="banner" style="margin:0">Tu as perdu ${losses} tickets aujourd'hui. Joue ce pari seulement s'il était prévu, pas pour te refaire.</div>`:""}
+  ${P.pct>5?`<div class="banner" style="margin:0">Au-dessus de 5 % de ta bankroll, tu sors du plan. Tu peux le faire, mais une mauvaise série fera mal.</div>`:""}`;}
+function refreshCalc(){const c=document.getElementById("p-calc");if(c)c.innerHTML=persoCalc();document.querySelectorAll('[data-chip="pct"]').forEach(b=>b.setAttribute("aria-pressed",String(+b.dataset.v===P.pct)));}
+document.addEventListener("input",e=>{if(!P)return;const id=e.target.id;
+  if(id==="p-pct"){const q=parseFloat(e.target.value.replace(",","."));if(q>0){P.pct=Math.min(100,r2(q));const pe=document.getElementById("p-eur");if(pe)pe.value="";refreshCalc();}}
+  else if(id==="p-eur"){const v=parseFloat(e.target.value.replace(",","."));const av=available(null);if(v>0&&av>0){P.pct=Math.min(100,Math.round(v/av*1e6)/1e4);document.getElementById("p-pct").value=fr(P.pct);refreshCalc();}}
+  else if(id==="p-odds"){const o=parseFloat(e.target.value.replace(",","."));if(o>1){P.odds=r2(o);refreshCalc();}}});
 function drawPerso(){
   const avail=available(null);
   sheet(`<div class="sheet-h"><h3>Ajouter un pari perso</h3><button class="x" data-act="close" aria-label="Fermer">×</button></div>
@@ -455,9 +473,11 @@ function drawPerso(){
     <div class="field"><span class="label">Cote</span>
       <div class="big-step"><button type="button" data-act="odds" data-dir="-1" aria-label="Baisser la cote">−</button><input id="p-odds" inputmode="decimal" value="${P.odds.toFixed(2).replace(".",",")}" aria-label="Cote"><button type="button" data-act="odds" data-dir="1" aria-label="Monter la cote">+</button></div>
       ${chips("oddsq",[[1.5,"1,50"],[1.7,"1,70"],[1.9,"1,90"],[2.1,"2,10"],[2.5,"2,50"],[3,"3,00"]],P.odds)}</div>
-    <div class="field"><span class="label">Ma mise</span>${chips("pct",[[1,"1 %"],[2,"2 %"],[3,"3 %"],[5,"5 %"],[10,"10 %"]],P.pct)}
-      <div class="calc">Soit <b>${eur(r2(avail*P.pct/100))}</b> sur tes ${eur(avail)} disponibles · gain possible <b>${eur(r2(avail*P.pct/100*(P.odds-1)))}</b></div>
-      ${P.pct>5?`<div class="banner" style="margin:0">Au-dessus de 5 %, tu sors du plan. Tu peux le faire, mais une mauvaise série fera mal.</div>`:""}</div>
+    <div class="field"><span class="label">Ma mise</span>
+      <div class="big-step"><button type="button" data-act="pctstep" data-dir="-1" aria-label="Baisser la mise">−</button><input id="p-pct" inputmode="decimal" value="${fr(P.pct)}" aria-label="Mise en % de ta bankroll"><span class="unit">%</span><button type="button" data-act="pctstep" data-dir="1" aria-label="Monter la mise">+</button></div>
+      ${chips("pct",[[1,"1 %"],[2,"2 %"],[3,"3 %"],[5,"5 %"]],P.pct)}
+      <div class="eur-row"><label for="p-eur">ou directement en euros</label><input class="inp num" id="p-eur" inputmode="decimal" placeholder="Ex. 15" value=""></div>
+      <div id="p-calc">${persoCalc()}</div></div>
     <button class="btn primary block" data-act="perso-save">Ajouter et jouer</button>`);
 }
 
@@ -478,7 +498,7 @@ async function drawRecap(cv){
   const rg=c.createRadialGradient(880,260,0,880,260,820);rg.addColorStop(0,"rgba(63,208,201,.30)");rg.addColorStop(1,"rgba(63,208,201,0)");c.fillStyle=rg;c.fillRect(0,0,W,H);
   c.textBaseline="alphabetic";
   c.fillStyle=FG;c.font='700 66px "Barlow Condensed", "Arial Narrow", sans-serif';c.fillText("OZB",90,200);
-  c.fillStyle=TEAL;c.fillText("PRONO",90+c.measureText("OZB ").width,200);
+  c.fillStyle=TEAL;c.fillText("BANKROLL",90+c.measureText("OZB ").width,200);
   const mon=MONTHS[new Date().getMonth()]+" "+new Date().getFullYear();
   c.fillStyle=MU;c.font='700 34px Manrope, system-ui, sans-serif';c.fillText(("MON MOIS · "+mon).toUpperCase().split("").join(String.fromCharCode(8202)),90,270);
   // Profit
@@ -544,8 +564,8 @@ function renderAdmin(){
       <div class="tickets">${list.length?list.map(t=>`<article class="ticket">
         <div class="t-meta"><span class="tag ${t.type}">${t.type}</span>${t.date!==td?`<span>${shortD(t.date)}</span>`:""}${t.played?`<span>· joué ${eur(t.stake)}</span>`:""}</div>
         <div class="t-main"><div class="t-title">${esc(t.match).split("\n").map(l=>`<span class="ln">${l}</span>`).join("")}${t.pick?`<div class="t-pick">${esc(t.pick)}</div>`:""}</div><div class="odds">${t.odds.toFixed(2).replace(".",",")}</div></div>
-        <div class="t-foot">${t.result?`<span class="pill ${t.result}">${t.result==="W"?"Gagné":t.result==="L"?"Perdu":"Remboursé"}</span><button class="btn ghost" style="padding:6px 10px;font-size:13px" data-act="a-undo" data-id="${t.id}">Annuler</button>`:
-          `<div class="res-btns"><button data-act="a-res" data-id="${t.id}" data-r="W">Gagné</button><button data-act="a-res" data-id="${t.id}" data-r="L">Perdu</button><button data-act="a-res" data-id="${t.id}" data-r="V">Remboursé</button></div><button class="btn ghost danger" style="padding:6px 10px;font-size:13px" data-act="a-del" data-id="${t.id}">Supprimer</button>`}</div>
+        <div class="t-foot">${t.result?`<span class="pill ${t.result}">${resLabel(t)}</span><button class="btn ghost" style="padding:6px 10px;font-size:13px" data-act="a-undo" data-id="${t.id}">Annuler</button>`:
+          `<div class="res-btns"><button data-act="a-res" data-id="${t.id}" data-r="W">Gagné</button><button data-act="a-res" data-id="${t.id}" data-r="L">Perdu</button><button data-act="partial" data-id="${t.id}" data-admin="1">Partiel</button><button data-act="a-res" data-id="${t.id}" data-r="V">Remboursé</button></div><button class="btn ghost danger" style="padding:6px 10px;font-size:13px" data-act="a-del" data-id="${t.id}">Supprimer</button>`}</div>
       </article>`).join(""):`<div class="empty">Aucun ticket aujourd'hui. Colle ton message Telegram au-dessus.</div>`}</div>
     </section>
     <p class="hint" style="text-align:center">Version de test : les données restent dans ce navigateur.</p>
@@ -571,9 +591,9 @@ document.addEventListener("click",async e=>{
   const ch=e.target.closest("[data-chip]");
   if(ch){const n=ch.dataset.chip,v=ch.dataset.v;
     if(n==="onb"){onbAmt=+v;const i=document.getElementById("onb-in");if(i)i.value="";renderOnboard();return;}
-    if(n==="sport"){P.match=document.getElementById("p-match").value;P.sport=v;drawPerso();return;}
-    if(n==="oddsq"){P.match=document.getElementById("p-match").value;P.odds=+v;drawPerso();return;}
-    if(n==="pct"){P.match=document.getElementById("p-match").value;P.pct=+v;drawPerso();return;}
+    if(n==="sport"){readP();P.sport=v;drawPerso();return;}
+    if(n==="oddsq"){readP();P.odds=+v;drawPerso();return;}
+    if(n==="pct"){readP();P.pct=+v;document.getElementById("p-pct").value=fr(P.pct);document.getElementById("p-eur").value="";refreshCalc();return;}
     if(n==="a-type"){readA();A.type=v;renderAdmin();return;}
     if(n==="a-sport"){readA();A.sport=v;renderAdmin();return;}
   }
@@ -593,8 +613,10 @@ document.addEventListener("click",async e=>{
     case "plan-keep":{const t=byId(id);t.ack=true;save();closeSheet();render();break;}
     case "res":{const t=byId(id);t.result=el.dataset.r;t.settledAt=Date.now();save();render();toast(t.result==="W"?`Gagné : ${sgn(profitOf(t))}`:t.result==="L"?`Perdu : ${sgn(profitOf(t))}. Reste dans le plan.`:"Remboursé, mise récupérée.");break;}
     case "add-perso":openPerso();break;
-    case "odds":{P.match=document.getElementById("p-match").value;const cur=parseFloat(document.getElementById("p-odds").value.replace(",","."))||P.odds;P.odds=Math.max(1.01,r2(cur+0.05*(+el.dataset.dir)));drawPerso();break;}
-    case "perso-save":{const m=document.getElementById("p-match").value.trim();const o=parseFloat(document.getElementById("p-odds").value.replace(",","."));
+    case "odds":{readP();const cur=parseFloat(document.getElementById("p-odds").value.replace(",","."))||P.odds;P.odds=Math.max(1.01,r2(cur+0.05*(+el.dataset.dir)));drawPerso();break;}
+    case "pctstep":{readP();P.pct=Math.min(100,Math.max(.5,r2(P.pct+.5*(+el.dataset.dir))));document.getElementById("p-pct").value=fr(P.pct);document.getElementById("p-eur").value="";refreshCalc();break;}
+    case "perso-save":{readP();const m=document.getElementById("p-match").value.trim();const o=parseFloat(document.getElementById("p-odds").value.replace(",","."));
+      if(!(P.pct>0)){toast("Indique une mise valide.");return;}
       if(!(o>1)){toast("La cote doit être supérieure à 1.");return;}
       const t={id:uid(),date:today(),src:"perso",type:"perso",sport:P.sport,match:m||"Pari perso",pick:"",odds:r2(o),adv:null,link:"",played:true,pct:P.pct,ack:false,result:null,ts:Date.now()};
       restake(t);S.tickets.push(t);save();closeSheet();render();if(!checkPlan(t))toast(`Pari ajouté : ${eur(t.stake)} à ${fr(t.odds)}`);break;}
@@ -617,8 +639,17 @@ document.addEventListener("click",async e=>{
       if(!A.match.trim()){toast("Ajoute le match.");return;}if(!(o>1)){toast("Indique une cote valide, par exemple 1,75.");return;}if(!(a>0&&a<=20)){toast("Le % conseillé doit être entre 0,5 et 20.");return;}
       S.tickets.push({id:uid(),date:today(),src:"ozb",type:A.type,sport:A.sport,match:A.match.trim(),pick:A.pick.trim(),odds:r2(o),adv:a,link:A.link.trim(),played:false,pct:a,ack:false,result:null,ts:Date.now()});
       save();A=freshA();renderAdmin();toast("Ticket publié.");break;}
+    case "partial":{const t=byId(id);const adm=el.dataset.admin?"1":"";
+      sheet(`<div class="sheet-h"><h3>Partiellement gagné</h3><button class="x" data-act="close" aria-label="Fermer">×</button></div>
+      <p style="margin:0" class="hint">Exemple : un combiné avec « remboursé si nul ». Le match est nul, donc seule l'autre sélection compte. Indique la cote finale réellement payée.</p>
+      <div class="field"><label class="label" for="f-odds">Cote finale payée</label><input class="inp num" id="f-odds" inputmode="decimal" placeholder="Ex. 1,35" autofocus>
+      <span class="hint">Cote d'origine du ticket : ${fr(t.odds)}. Mets 1 si tout est remboursé.</span></div>
+      <button class="btn primary block" data-act="partial-ok" data-id="${t.id}" data-admin="${adm}">Valider le résultat</button>`);break;}
+    case "partial-ok":{const t=byId(id);const o=parseFloat((document.getElementById("f-odds").value||"").replace(",","."));
+      if(!(o>=1)){toast("Indique une cote finale valide, par exemple 1,35.");return;}
+      t.result=o===1?"V":"P";t.finalOdds=r2(o);t.settledAt=Date.now();save();closeSheet();if(el.dataset.admin)renderAdmin();else render();toast(o===1?"Remboursé, mise récupérée.":`Partiel validé : ${t.played?sgn(profitOf(t)):"cote "+fr(o)}`);break;}
     case "a-res":{const t=byId(id);t.result=el.dataset.r;t.settledAt=Date.now();save();renderAdmin();toast("Résultat enregistré.");break;}
-    case "a-undo":{const t=byId(id);t.result=null;t.settledAt=null;save();renderAdmin();break;}
+    case "a-undo":{const t=byId(id);t.result=null;t.settledAt=null;t.finalOdds=null;save();renderAdmin();break;}
     case "a-del":{S.tickets=S.tickets.filter(t=>t.id!==id);save();renderAdmin();toast("Ticket supprimé.");break;}
   }
 });
