@@ -168,6 +168,9 @@ header{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:rg
 .offer li{display:grid;grid-template-columns:22px 1fr;gap:10px;font-size:16px}
 .offer li svg{width:20px;height:20px;margin-top:2px;stroke:var(--pool);fill:none;stroke-width:2.4}
 .fine{font-size:13px;color:var(--muted);text-align:center}
+.offer li.hl{background:var(--pool-soft);border:1px solid rgba(14,140,126,.35);border-radius:12px;padding:12px 12px 12px 10px;margin-inline:-10px;font-weight:600}
+.new{display:inline-block;margin-right:8px;font-family:var(--f-mono);font-size:10.5px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;background:var(--pool);color:var(--pool-ink);padding:3px 8px;border-radius:999px;vertical-align:2px}
+
 .badge{align-self:flex-start;font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;background:var(--pool);color:var(--pool-ink);padding:5px 10px;border-radius:999px}
 .side{display:grid;gap:18px}
 .steps{background:var(--bg-2);border:1px solid var(--line);border-radius:18px;padding:26px}
@@ -444,7 +447,7 @@ footer strong{color:var(--fg)}
             <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 10 17l9-10"/></svg>Jusqu'à 3 sélections principales par jour, foot et tennis</li>
             <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 10 17l9-10"/></svg>La mise exacte à jouer, quel que soit ton budget</li>
             <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 10 17l9-10"/></svg>Mes plus grosses analyses et les grandes compétitions</li>
-            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 10 17l9-10"/></svg>L'outil OZB Bankroll : ta mise prévue et ton bilan à jour, automatiquement</li>
+            <li class="hl"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 10 17l9-10"/></svg><span><span class="new">Nouveau</span>L'outil OZB Bankroll : ta mise prévue et ton bilan à jour, automatiquement</span></li>
             <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 10 17l9-10"/></svg>Bilan mensuel complet avec graphique, pertes comprises</li>
             <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 10 17l9-10"/></svg>Accès direct à moi pour tes questions</li>
           </ul>
